@@ -19,5 +19,5 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    compile project(path: ':ABPWebService')
+    implementation project(path: ':ABPWebService')
 }
