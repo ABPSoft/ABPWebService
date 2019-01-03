@@ -53,6 +53,6 @@ public class ActivityMain extends Activity
 			e.printStackTrace();
 		}
 		
-		abpWebService.sendRequest(object.toString());
+		abpWebService.sendRequest("data",object.toString(),"file",file);
 	}
 }

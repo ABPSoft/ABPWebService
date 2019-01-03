@@ -3,6 +3,7 @@ package com.aminbahrami.abpwebservice;
 import android.os.Handler;
 import android.util.Base64;
 import android.util.Log;
+import android.webkit.MimeTypeMap;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -116,7 +117,7 @@ public class ABPWebService
 						
 						
 						String content="Content-Disposition: form-data; name=\""+inputName+"\""+lineEnd+lineEnd+data+lineEnd+lineEnd;
-						content+=twoHyphens+boundary+lineEnd+"Content-Disposition: form-data; name=\""+fileInputName+"\";filename=\""+file.getName()+"\""+lineEnd;
+						content+=twoHyphens+boundary+lineEnd+"Content-Disposition: form-data; name=\""+fileInputName+"\";filename=\""+file.getName()+"\""+lineEnd+"Content-Type:"+ getMimeType(file.getAbsolutePath())+lineEnd;
 						
 						dataOutputStream=new DataOutputStream(httpURLConnection.getOutputStream());
 						dataOutputStream.writeBytes(twoHyphens+boundary+lineEnd);
@@ -212,5 +213,17 @@ public class ABPWebService
 		});
 		
 		thread.start();
+	}
+	
+	private static String getMimeType(String url)
+	{
+		String type="";
+		
+		String extension=MimeTypeMap.getFileExtensionFromUrl(url);
+		if(extension!=null)
+		{
+			type=MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+		}
+		return type;
 	}
 }
