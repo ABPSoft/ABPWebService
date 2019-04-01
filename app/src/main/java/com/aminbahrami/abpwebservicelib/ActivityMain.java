@@ -5,8 +5,10 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import com.aminbahrami.abpwebservice.ABPWebService;
+import com.aminbahrami.abpwebservice.IOnNetwork;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -52,6 +54,21 @@ public class ActivityMain extends Activity
 		{
 			e.printStackTrace();
 		}
+		
+		abpWebService.setOnNetwork(new IOnNetwork()
+		{
+			@Override
+			public void onResponse(String response)
+			{
+				Log.i("LOG","Response: "+response);
+			}
+			
+			@Override
+			public void onError(int errorCode,String errorText)
+			{
+			
+			}
+		});
 		
 		abpWebService.sendRequest("data",object.toString(),"file",file);
 	}

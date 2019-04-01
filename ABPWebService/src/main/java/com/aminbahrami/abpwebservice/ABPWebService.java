@@ -62,7 +62,7 @@ public class ABPWebService
 	
 	public void sendRequest(final String inputName,final String data,final String fileInputName,final File file)
 	{
-		Log.i("ABPWebService","Request: "+data);
+		Log.i("WebService","Request: "+data);
 		
 		Thread thread=new Thread(new Runnable()
 		{
@@ -170,7 +170,7 @@ public class ABPWebService
 					
 					strAll=new StringBuilder(strAll.toString().trim());
 					
-					Log.i("ABPWebService","Response: "+strAll);
+					Log.i("WebService","Response: "+strAll);
 					
 					if(iOnNetwork!=null)
 					{
