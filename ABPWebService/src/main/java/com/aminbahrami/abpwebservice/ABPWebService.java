@@ -1,24 +1,38 @@
 package com.aminbahrami.abpwebservice;
 
+import android.os.Build;
 import android.os.Handler;
-import android.util.Base64;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.io.InputStream;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
+import javax.security.cert.CertificateException;
 
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.CipherSuite;
+import okhttp3.ConnectionSpec;
 import okhttp3.FormBody;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -26,6 +40,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import okhttp3.TlsVersion;
 import okio.BufferedSink;
 
 /**
@@ -50,9 +65,13 @@ public class ABPWebService
 	private IOnNetwork iOnNetwork=null;
 	private String url="";
 	
+	private boolean isSsl=false;
+	
 	public ABPWebService setUrl(String url)
 	{
 		this.url=url;
+		
+		isSsl=url.toLowerCase().startsWith("https");
 		
 		return this;
 	}
@@ -119,11 +138,9 @@ public class ABPWebService
 				
 				try
 				{
-					OkHttpClient client=new OkHttpClient.Builder()
-							.connectTimeout(connectTimeout,TimeUnit.MILLISECONDS)
-							.readTimeout(readTimeout,TimeUnit.MILLISECONDS)
-							.writeTimeout(readTimeout,TimeUnit.MILLISECONDS)
-							.build();
+					
+					OkHttpClient client=getNewClient();
+					
 					
 					Request request=new Request.Builder()
 							.url(url)
@@ -181,7 +198,9 @@ public class ABPWebService
 					
 					
 				}
-				catch(final Exception e)
+				catch(
+						final Exception e)
+				
 				{
 					e.printStackTrace();
 					
@@ -201,6 +220,52 @@ public class ABPWebService
 		});
 		
 		thread.start();
+	}
+	
+	private OkHttpClient getNewClient()
+	{
+		OkHttpClient.Builder builder=new OkHttpClient.Builder()
+				.connectTimeout(connectTimeout,TimeUnit.MILLISECONDS)
+				.readTimeout(readTimeout,TimeUnit.MILLISECONDS)
+				.writeTimeout(readTimeout,TimeUnit.MILLISECONDS)
+				.followRedirects(true)
+				.followSslRedirects(true)
+				.retryOnConnectionFailure(true)
+				.cache(null);
+		
+		
+		if(isSsl && (Build.VERSION.SDK_INT >= 17 && Build.VERSION.SDK_INT<22))
+		{
+			try
+			{
+				ConnectionSpec spec=new ConnectionSpec.Builder(ConnectionSpec.COMPATIBLE_TLS)
+						.supportsTlsExtensions(true)
+						.tlsVersions(TlsVersion.TLS_1_2,TlsVersion.TLS_1_1,TlsVersion.TLS_1_0)
+						.cipherSuites(
+								CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+								CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+								CipherSuite.TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,
+								CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
+								CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
+								CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
+								CipherSuite.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
+								CipherSuite.TLS_ECDHE_ECDSA_WITH_RC4_128_SHA,
+								CipherSuite.TLS_ECDHE_RSA_WITH_RC4_128_SHA,
+								CipherSuite.TLS_DHE_RSA_WITH_AES_128_CBC_SHA,
+								CipherSuite.TLS_DHE_DSS_WITH_AES_128_CBC_SHA,
+								CipherSuite.TLS_DHE_RSA_WITH_AES_256_CBC_SHA)
+						.build();
+				
+				builder.connectionSpecs(Collections.singletonList(spec));
+			}
+			catch(Exception exc)
+			{
+				Log.e("OkHttpTLSCompat","Error while setting TLS 1.2",exc);
+			}
+		}
+		
+		
+		return builder.build();
 	}
 	
 	private static String getMimeType(String url)

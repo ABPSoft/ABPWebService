@@ -38,8 +38,10 @@ public class ActivityMain extends Activity
 	{
 		ABPWebService abpWebService=new ABPWebService();
 		//abpWebService.setUrl("https://14bazikon.com/api/users/login");
-		abpWebService.setUrl("http://api.apiservice.info/");
+		//abpWebService.setUrl("http://api.apiservice.info/");
+		abpWebService.setUrl("https://api.apiservice.info/");
 		//abpWebService.setUrl("https://api.github.com/repos/square/okhttp/issues");
+		//abpWebService.setUrl("https://reqres.in/api/users");
 		
 		//Check Permission in the feature
 		File file=new File(Environment.getExternalStorageDirectory()+"/test.jpg");
@@ -76,6 +78,6 @@ public class ActivityMain extends Activity
 			}
 		});
 		
-		abpWebService.sendRequest(null,object.toString());
+		abpWebService.sendRequest("test",object.toString());
 	}
 }
