@@ -37,7 +37,7 @@ public class ActivityMain extends Activity
 	private void sendRequest()
 	{
 		ABPWebService abpWebService=new ABPWebService();
-		abpWebService.setUrl("http://192.168.1.2/test/androidUploadFile/upload.php");
+		abpWebService.setUrl("http://192.168.1.7/test/androidUploadFile/upload.php");
 		
 		//Check Permission in the feature
 		File file=new File(Environment.getExternalStorageDirectory()+"/test.jpg");
@@ -64,12 +64,12 @@ public class ActivityMain extends Activity
 			}
 			
 			@Override
-			public void onError(int errorCode,String errorText)
+			public void onError(int errorCode,String errorText,Exception e)
 			{
 			
 			}
 		});
 		
-		abpWebService.sendRequest("data",object.toString(),"file",file);
+		abpWebService.sendRequest(null,object.toString());
 	}
 }

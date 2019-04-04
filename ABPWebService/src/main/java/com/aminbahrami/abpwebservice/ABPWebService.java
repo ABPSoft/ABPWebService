@@ -16,6 +16,17 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.FormBody;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import okio.BufferedSink;
+
 /**
  * Created by ABP on 8/28/2016.
  */
@@ -71,129 +82,104 @@ public class ABPWebService
 			{
 				String requestData;
 				
-				if(inputName==null)
+				RequestBody requestBody;
+				
+				if(fileInputName!=null)
 				{
-					requestData=data;
+					String mimeType=getMimeType(file.getAbsolutePath());
+					
+					requestBody=new MultipartBody.Builder()
+							.setType(MultipartBody.FORM)
+							.addFormDataPart(inputName,data)
+							.addFormDataPart(fileInputName,file.getName(),RequestBody.create(MediaType.parse(mimeType),file))
+							.build();
+				}
+				else if(inputName!=null)
+				{
+					requestBody=new FormBody.Builder()
+							.add(inputName,data)
+							.build();
 				}
 				else
 				{
-					requestData=inputName+"="+data;
+					requestBody=new RequestBody()
+					{
+						@Override
+						public MediaType contentType()
+						{
+							return MediaType.parse("application/json; charset=utf-8");
+						}
+						
+						@Override
+						public void writeTo(BufferedSink sink) throws IOException
+						{
+							sink.writeUtf8(data);
+						}
+					};
 				}
 				
 				
-				URL apiUrl=null;
+				OkHttpClient client=new OkHttpClient();
+				
+				Request request=new Request.Builder()
+						.url(url)
+						.post(requestBody)
+						.build();
 				
 				try
 				{
-					apiUrl=new URL(url);
-					
-					HttpURLConnection httpURLConnection=(HttpURLConnection) apiUrl.openConnection();
-					
-					httpURLConnection.setConnectTimeout(connectTimeout);
-					httpURLConnection.setReadTimeout(readTimeout);
-					
-					if(inputName==null)
+					client.newCall(request).enqueue(new Callback()
 					{
-						httpURLConnection.setRequestProperty("Content-Type","application/json; charset=UTF-8");
-					}
-					
-					httpURLConnection.setRequestMethod("POST");
-					httpURLConnection.setDoInput(true);
-					httpURLConnection.setDoOutput(true);
-					
-					DataOutputStream dataOutputStream=null;
-					
-					if(file!=null)
-					{
-						String boundary="***************";
-						
-						String lineEnd="\r\n";
-						String twoHyphens="--";
-						
-						FileInputStream fileInputStream=new FileInputStream(file);
-						httpURLConnection.setUseCaches(false);
-						httpURLConnection.setRequestProperty("ENCTYPE","multipart/form-data");
-						httpURLConnection.setRequestProperty("Content-Type","multipart/form-data;boundary="+boundary);
-						
-						
-						String content="Content-Disposition: form-data; name=\""+inputName+"\""+lineEnd+lineEnd+data+lineEnd+lineEnd;
-						content+=twoHyphens+boundary+lineEnd+"Content-Disposition: form-data; name=\""+fileInputName+"\";filename=\""+file.getName()+"\""+lineEnd+"Content-Type:"+ getMimeType(file.getAbsolutePath())+lineEnd;
-						
-						dataOutputStream=new DataOutputStream(httpURLConnection.getOutputStream());
-						dataOutputStream.writeBytes(twoHyphens+boundary+lineEnd);
-						dataOutputStream.writeBytes(content);
-						dataOutputStream.writeBytes(lineEnd);
-						
-						int byteAvailable, bufferSize, bytesRead;
-						byte[] buffer;
-						int maxBufferSize=1024*1024;
-						
-						byteAvailable=fileInputStream.available();
-						bufferSize=Math.min(byteAvailable,maxBufferSize);
-						
-						buffer=new byte[bufferSize];
-						bytesRead=fileInputStream.read(buffer,0,bufferSize);
-						
-						while(bytesRead>0)
+						@Override
+						public void onFailure(Call call,final IOException e)
 						{
-							dataOutputStream.write(buffer,0,bufferSize);
-							byteAvailable=fileInputStream.available();
-							bufferSize=Math.min(byteAvailable,maxBufferSize);
-							
-							bytesRead=fileInputStream.read(buffer,0,bufferSize);
+							if(iOnNetwork!=null)
+							{
+								HANDLER.post(new Runnable()
+								{
+									@Override
+									public void run()
+									{
+										iOnNetwork.onError(-6,"عدم توانایی در اتصال به سرور!",e);
+									}
+								});
+							}
 						}
 						
-						dataOutputStream.writeBytes(lineEnd);
-						dataOutputStream.writeBytes(twoHyphens+boundary+twoHyphens+lineEnd);
-					}
-					else
-					{
-						OutputStreamWriter osw=new OutputStreamWriter(httpURLConnection.getOutputStream(),"UTF-8");
-						osw.write(requestData);
-						osw.flush();
-					}
-					
-					if(dataOutputStream!=null)
-					{
-						dataOutputStream.close();
-						dataOutputStream.flush();
-					}
-					
-					BufferedReader br=new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
-					
-					StringBuilder strAll=new StringBuilder();
-					String strLine;
-					while((strLine=br.readLine())!=null)
-					{
-						strAll.append(strLine).append("\n");
-					}
-					
-					strAll=new StringBuilder(strAll.toString().trim());
-					
-					Log.i("WebService","Response: "+strAll);
-					
-					if(iOnNetwork!=null)
-					{
-						iOnNetwork.onResponse(strAll.toString());
-					}
-				}
-				catch(MalformedURLException e)
-				{
-					e.printStackTrace();
-					
-					if(iOnNetwork!=null)
-					{
-						HANDLER.post(new Runnable()
+						@Override
+						public void onResponse(Call call,final Response response) throws IOException
 						{
-							@Override
-							public void run()
+							if(response.isSuccessful())
 							{
-								iOnNetwork.onError(-5,"Error in Assign URL");
+								String body=response.body().string();
+								
+								Log.i("WebService","Response: "+body);
+								
+								if(iOnNetwork!=null)
+								{
+									iOnNetwork.onResponse(body);
+								}
 							}
-						});
-					}
+							else
+							{
+								if(iOnNetwork!=null)
+								{
+									HANDLER.post(new Runnable()
+									{
+										@Override
+										public void run()
+										{
+											iOnNetwork.onError(-6,"عدم توانایی در اتصال به سرور!",new Exception(response+""));
+										}
+									});
+								}
+							}
+						}
+					});
+					
+					
 				}
-				catch(IOException e)
+				catch(final Exception e)
 				{
 					e.printStackTrace();
 					
@@ -204,7 +190,7 @@ public class ABPWebService
 							@Override
 							public void run()
 							{
-								iOnNetwork.onError(-6,"عدم توانایی در اتصال به سرور!");
+								iOnNetwork.onError(-6,"عدم توانایی در اتصال به سرور!",e);
 							}
 						});
 					}
