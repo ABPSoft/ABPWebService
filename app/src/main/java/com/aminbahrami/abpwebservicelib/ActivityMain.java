@@ -37,7 +37,8 @@ public class ActivityMain extends Activity
 	private void sendRequest()
 	{
 		ABPWebService abpWebService=new ABPWebService();
-		abpWebService.setUrl("http://192.168.1.2/test/androidUploadFile/upload.php");
+		abpWebService.setUrl("https://14bazikon.com/api/users/login");
+		//abpWebService.setUrl("https://api.github.com/repos/square/okhttp/issues");
 		
 		//Check Permission in the feature
 		File file=new File(Environment.getExternalStorageDirectory()+"/test.jpg");
@@ -54,6 +55,8 @@ public class ActivityMain extends Activity
 		{
 			e.printStackTrace();
 		}
+		abpWebService.setConnectTimeout(5000);
+		abpWebService.setReadTimeout(5000);
 		
 		abpWebService.setOnNetwork(new IOnNetwork()
 		{
@@ -64,12 +67,14 @@ public class ActivityMain extends Activity
 			}
 			
 			@Override
-			public void onError(int errorCode,String errorText)
+			public void onError(int errorCode,String errorText,Exception e)
 			{
-			
+				Log.i("LOG",errorText);
+				
+				e.printStackTrace();
 			}
 		});
 		
-		abpWebService.sendRequest("data",object.toString(),"file",file);
+		abpWebService.sendRequest(null,object.toString());
 	}
 }

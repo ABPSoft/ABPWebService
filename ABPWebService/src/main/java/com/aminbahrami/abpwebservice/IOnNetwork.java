@@ -7,5 +7,5 @@ public interface IOnNetwork
 {
 	public void onResponse(String response);
 	
-	public void onError(int errorCode,String errorText);
+	public void onError(int errorCode,String errorText,Exception exception);
 }
