@@ -117,20 +117,19 @@ public class ABPWebService
 					};
 				}
 				
-				
-				OkHttpClient client=new OkHttpClient.Builder()
-						.connectTimeout(connectTimeout,TimeUnit.MILLISECONDS)
-						.readTimeout(readTimeout,TimeUnit.MILLISECONDS)
-						.writeTimeout(readTimeout,TimeUnit.MILLISECONDS)
-						.build();
-				
-				Request request=new Request.Builder()
-						.url(url)
-						.post(requestBody)
-						.build();
-				
 				try
 				{
+					OkHttpClient client=new OkHttpClient.Builder()
+							.connectTimeout(connectTimeout,TimeUnit.MILLISECONDS)
+							.readTimeout(readTimeout,TimeUnit.MILLISECONDS)
+							.writeTimeout(readTimeout,TimeUnit.MILLISECONDS)
+							.build();
+					
+					Request request=new Request.Builder()
+							.url(url)
+							.post(requestBody)
+							.build();
+					
 					client.newCall(request).enqueue(new Callback()
 					{
 						@Override

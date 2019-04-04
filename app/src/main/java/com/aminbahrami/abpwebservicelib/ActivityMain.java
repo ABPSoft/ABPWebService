@@ -37,7 +37,8 @@ public class ActivityMain extends Activity
 	private void sendRequest()
 	{
 		ABPWebService abpWebService=new ABPWebService();
-		abpWebService.setUrl("https://14bazikon.com/api/users/login");
+		//abpWebService.setUrl("https://14bazikon.com/api/users/login");
+		abpWebService.setUrl("http://api.apiservice.info/");
 		//abpWebService.setUrl("https://api.github.com/repos/square/okhttp/issues");
 		
 		//Check Permission in the feature
