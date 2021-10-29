@@ -4,7 +4,7 @@ package com.aminbahrami.abpwebservice;
  * Created by ABP on 10/29/2021 - 11:06 PM
  */
 
-class HttpHeader
+public class HttpHeader
 {
 	private String name="";
 	
