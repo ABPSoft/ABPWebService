@@ -6,28 +6,10 @@ import android.util.Log;
 import android.webkit.MimeTypeMap;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
-import javax.security.cert.CertificateException;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -51,6 +33,14 @@ public class ABPWebService
 	private int connectTimeout=3000;
 	private int readTimeout=10000;
 	
+	private static final Handler HANDLER=new Handler();
+	private IOnNetwork iOnNetwork=null;
+	private String url="";
+	
+	private boolean isSsl=false;
+	
+	private ArrayList<HttpHeader> headers=new ArrayList<>();
+	
 	public void setConnectTimeout(int timeout)
 	{
 		this.connectTimeout=timeout;
@@ -60,12 +50,6 @@ public class ABPWebService
 	{
 		this.readTimeout=readTimeout;
 	}
-	
-	private static final Handler HANDLER=new Handler();
-	private IOnNetwork iOnNetwork=null;
-	private String url="";
-	
-	private boolean isSsl=false;
 	
 	public ABPWebService setUrl(String url)
 	{
@@ -114,6 +98,8 @@ public class ABPWebService
 				}
 				else if(inputName!=null)
 				{
+					Log.i("Webservice","inputName: "+inputName);
+					
 					requestBody=new FormBody.Builder()
 							.add(inputName,data)
 							.build();
@@ -142,10 +128,17 @@ public class ABPWebService
 					OkHttpClient client=getNewClient();
 					
 					
-					Request request=new Request.Builder()
+					Request.Builder builder=new Request.Builder()
 							.url(url)
-							.post(requestBody)
-							.build();
+							.post(requestBody);
+					
+					
+					for(HttpHeader header : getHeaders())
+					{
+						builder.addHeader(header.getName(),header.getValue());
+					}
+					
+					Request request=builder.build();
 					
 					client.newCall(request).enqueue(new Callback()
 					{
@@ -195,12 +188,8 @@ public class ABPWebService
 							}
 						}
 					});
-					
-					
 				}
-				catch(
-						final Exception e)
-				
+				catch(final Exception e)
 				{
 					e.printStackTrace();
 					
@@ -234,7 +223,7 @@ public class ABPWebService
 				.cache(null);
 		
 		
-		if(isSsl && (Build.VERSION.SDK_INT >= 17 && Build.VERSION.SDK_INT<22))
+		if(isSsl && (Build.VERSION.SDK_INT>=17 && Build.VERSION.SDK_INT<22))
 		{
 			try
 			{
@@ -278,5 +267,17 @@ public class ABPWebService
 			type=MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
 		}
 		return type;
+	}
+	
+	public ArrayList<HttpHeader> getHeaders()
+	{
+		return headers;
+	}
+	
+	public ABPWebService setHeaders(ArrayList<HttpHeader> headers)
+	{
+		this.headers=headers;
+		
+		return this;
 	}
 }
