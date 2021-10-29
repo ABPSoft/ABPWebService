@@ -17,10 +17,10 @@ android {
     }
 
     //این باید حتماً باشه. چون نباشه کار نمیکنه
-    compileOptions {
+    /*compileOptions {
         sourceCompatibility 1.8
         targetCompatibility 1.8
-    }
+    }*/
 }
 
 dependencies {
