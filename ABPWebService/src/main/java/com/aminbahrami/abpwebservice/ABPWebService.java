@@ -161,30 +161,13 @@ public class ABPWebService
 						@Override
 						public void onResponse(Call call,final Response response) throws IOException
 						{
-							if(response.isSuccessful())
+							String body=response.body().string();
+							
+							Log.i("WebService","Response: "+body);
+							
+							if(iOnNetwork!=null)
 							{
-								String body=response.body().string();
-								
-								Log.i("WebService","Response: "+body);
-								
-								if(iOnNetwork!=null)
-								{
-									iOnNetwork.onResponse(body);
-								}
-							}
-							else
-							{
-								if(iOnNetwork!=null)
-								{
-									HANDLER.post(new Runnable()
-									{
-										@Override
-										public void run()
-										{
-											iOnNetwork.onError(-6,"عدم توانایی در اتصال به سرور!",new Exception(response+""));
-										}
-									});
-								}
+								iOnNetwork.onResponse(body,response.code());
 							}
 						}
 					});

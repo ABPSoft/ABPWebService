@@ -42,7 +42,7 @@ public class ActivityMain extends Activity
 //		abpWebService.setUrl("https://api.apiservice.info/");
 		//abpWebService.setUrl("https://api.github.com/repos/square/okhttp/issues");
 		//abpWebService.setUrl("https://reqres.in/api/users");
-		abpWebService.setUrl("http://192.168.1.102/Android/test.php");
+		abpWebService.setUrl("http://192.168.1.105/Android/test.php");
 		
 		//Check Permission in the feature
 		File file=new File(Environment.getExternalStorageDirectory()+"/test.jpg");
@@ -65,7 +65,7 @@ public class ActivityMain extends Activity
 		abpWebService.setOnNetwork(new IOnNetwork()
 		{
 			@Override
-			public void onResponse(String response)
+			public void onResponse(String response,int httpCode)
 			{
 				Log.i("LOG","Response: "+response);
 			}

@@ -5,7 +5,7 @@ package com.aminbahrami.abpwebservice;
  */
 public interface IOnNetwork
 {
-	public void onResponse(String response);
+	public void onResponse(String response,int httpCode);
 	
 	public void onError(int errorCode,String errorText,Exception exception);
 }
