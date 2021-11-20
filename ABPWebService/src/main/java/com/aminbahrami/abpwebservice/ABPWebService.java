@@ -210,7 +210,7 @@ public class ABPWebService
 				.cache(null);
 		
 		
-		if(isSsl && (Build.VERSION.SDK_INT>=17 && Build.VERSION.SDK_INT<22))
+		if(isSsl)
 		{
 			try
 			{

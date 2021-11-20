@@ -37,12 +37,10 @@ public class ActivityMain extends Activity
 	private void sendRequest()
 	{
 		ABPWebService abpWebService=new ABPWebService();
-		//abpWebService.setUrl("https://14bazikon.com/api/users/login");
-		//abpWebService.setUrl("http://api.apiservice.info/");
-//		abpWebService.setUrl("https://api.apiservice.info/");
 		//abpWebService.setUrl("https://api.github.com/repos/square/okhttp/issues");
 		//abpWebService.setUrl("https://reqres.in/api/users");
-		abpWebService.setUrl("http://192.168.1.105/Android/test.php");
+		abpWebService.setUrl("https://advertisemoneymaker.com/core/");
+		//abpWebService.setUrl("http://192.168.1.105/Android/test.php");
 		
 		//Check Permission in the feature
 		File file=new File(Environment.getExternalStorageDirectory()+"/test.jpg");
