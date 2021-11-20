@@ -122,6 +122,8 @@ public class ABPWebService
 					};
 				}
 				
+				
+				
 				try
 				{
 					
@@ -162,6 +164,8 @@ public class ABPWebService
 						public void onResponse(Call call,final Response response) throws IOException
 						{
 							String body=response.body().string();
+							
+							response.close();
 							
 							Log.i("WebService","Response: "+body);
 							
